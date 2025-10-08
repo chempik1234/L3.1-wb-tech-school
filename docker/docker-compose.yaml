@@ -1,0 +1,70 @@
+services:
+  delayed_notifier:
+    build:
+      context: ../delayed_notifier
+      dockerfile: ./service.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8081"
+    scale: 1
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ../config/.env
+
+  simulator_service:
+    build:
+      context: ../simulator_service
+      dockerfile: ./service.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8082"
+    scale: 1
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ../config/.env
+
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    hostname: rabbitmq
+    restart: always
+    env_file:
+      - ../config/.env
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    healthcheck:
+      test: [ "CMD-SHELL", "rabbitmq-diagnostics -q ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - bot-network
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    volumes:
+      - ../nginx/conf.d:/etc/nginx/conf.d
+      - ../nginx/static:/var/static
+    depends_on:
+      delayed_notifier:
+        condition: service_started
+      simulator_service:
+        condition: service_started
+
+  # e2e_test:
+  #   build:
+  #     context: ../e2e_test
+  #     dockerfile: ../integration_test.Dockerfile
+  #   depends_on:
+  #     delayed_notifier:
+  #       condition: service_started
+  #   env_file:
+  #     - ../config/test/.env
+  #   network_mode: host
