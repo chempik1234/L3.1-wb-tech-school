@@ -1,31 +1,38 @@
+x-def-logging: &default-logging
+  logging:
+    driver: "loki"
+    options:
+      loki-url: "http://localhost:3100/loki/api/v1/push"
+      loki-batch-size: "100"
+      loki-retries: 2
+      loki-max-backoff: 1000ms
+      loki-timeout: 1s
+      labels: "service={{.Name}},instance={{.ID}}"
+
+x-delayer_notifier-template: &delayer_notifier-template
+  image: delayed_notifier
+  # build:
+  #   context: ../delayed_notifier
+  #   dockerfile: ./service.Dockerfile
+  restart: unless-stopped
+  # environment:
+  #   DELAYED_NOTIFIER_RABBITMQ_CONSUMER: "notifier_1"
+  depends_on:
+    rabbitmq:
+      condition: service_healthy
+  env_file:
+    - ../config/.env
+  <<: *default-logging
+
+
 services:
   delayed_notifier:
-    build:
-      context: ../delayed_notifier
-      dockerfile: ./service.Dockerfile
-    restart: unless-stopped
-    ports:
+    <<: *delayer_notifier-template
+    expose:
       - "8081"
-    scale: 1
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    env_file:
-      - ../config/.env
-
-  simulator_service:
-    build:
-      context: ../simulator_service
-      dockerfile: ./service.Dockerfile
-    restart: unless-stopped
-    ports:
-      - "8082"
-    scale: 1
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    env_file:
-      - ../config/.env
+    scale: 3
+    networks:
+      - backend
 
   rabbitmq:
     image: rabbitmq:4.1-management-alpine
@@ -42,7 +49,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - bot-network
+      - backend
 
   nginx:
     image: nginx:latest
@@ -55,8 +62,46 @@ services:
     depends_on:
       delayed_notifier:
         condition: service_started
-      simulator_service:
-        condition: service_started
+    networks:
+      - backend
+
+  postgres_master:
+    image: postgres:latest
+    expose:
+      - "5432"
+    env_file:
+      - ../config/.env
+    volumes:
+      - postgres_master_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "pg_isready -d delayed_notifier -U delayed_notifier" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    expose:
+      - "6379"
+    env_file:
+      - ../config/.env
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--requirepass", "$${REDIS_PASSWORD}"]
+    # "/bin/sh -c redis-server --requirepass \"$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}\""
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 1s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - backend
 
   # e2e_test:
   #   build:
@@ -68,3 +113,10 @@ services:
   #   env_file:
   #     - ../config/test/.env
   #   network_mode: host
+
+volumes:
+  postgres_master_data:
+  redis_data:
+
+networks:
+  backend:

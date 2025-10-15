@@ -4,8 +4,7 @@ docker_up:
 docker_upd:
 	docker compose -f docker/docker-compose.yaml up -d
 
-docker_updb:
-	docker compose -f docker/docker-compose.yaml up -d --build
+docker_updb: build docker_upd
 
 docker_down:
 	docker compose -f docker/docker-compose.yaml down
@@ -22,7 +21,19 @@ unittest_delayed_notifier:
 
 docker_integration_test:
 	cd integration_tests && \
-		docker compose up -d rabbitmq delayed_notifier simulator_service nginx && \
+		docker compose up -d rabbitmq delayed_notifier nginx && \
 		docker compose up --build e2e_test
 	cd integration_tests && \
 		docker compose down
+
+build:
+	docker build -t delayed_notifier -f docker/service.Dockerfile ./delayed_notifier
+
+kubernetes_up:
+	echo "kubectl apply -f ?"
+	# TODO: kubernetes up
+	# TODO: kubernetes down
+	# TODO: kubernetes apply
+
+init_env:
+	type ".\config\example.env" > ".\config\.env"

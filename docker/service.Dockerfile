@@ -1,10 +1,12 @@
-ARG GO_VERSION=1.24.1
+ARG GO_VERSION=1.25.1
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS build
 
 WORKDIR /src
 
 # COPY .env .env
-COPY ./db /app/db
+# COPY ./config /app/config
+
+RUN mkdir /app && touch /app/config.yaml
 
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=bind,source=go.sum,target=go.sum \

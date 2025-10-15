@@ -1,0 +1,10 @@
+openapi: 3.0.3
+info:
+  title: "Delayed notifier docker compose"
+  description: "Delayed notifier docker compose"
+  version: 1.0.0
+servers:
+  - url: 'https'
+paths:
+  
+# TODO: vibecode me

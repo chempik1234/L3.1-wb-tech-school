@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: delayed_notifier-deployment
+  labels:
+    app: delayed_notifier
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: delayed_notifier
+  template:
+    metadata:
+      labels:
+        app: delayed_notifier
+    spec:
+      containers:
+        - name: delayed_notifier
+          image: delayed_notifier
+          ports:
+            - containerPort: 8081
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: DELAYED_NOTIFIER_SERVER_HTTP_PORT
+              value: "8081"
+            # TODO: k8s delayed_notifier env
+            - name: MONGODB_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: delayed_notifier-secret
+                  key: mongo-root-username
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: delayed_notifier-service
+spec:
+  selector:
+    app: delayed_notifier
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8080
