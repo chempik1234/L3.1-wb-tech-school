@@ -31,6 +31,11 @@ services:
     expose:
       - "8081"
     scale: 3
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres_master:
+        condition: service_healthy
     networks:
       - backend
 
@@ -40,6 +45,8 @@ services:
     restart: always
     env_file:
       - ../config/.env
+    volumes:
+      - ../rabbitmq/myrabbit.conf:/etc/rabbitmq/rabbitmq.conf
     ports:
       - "15672:15672"
       - "5672:5672"
@@ -69,6 +76,8 @@ services:
     image: postgres:latest
     expose:
       - "5432"
+    ports:
+      - "5432:5432"
     env_file:
       - ../config/.env
     volumes:

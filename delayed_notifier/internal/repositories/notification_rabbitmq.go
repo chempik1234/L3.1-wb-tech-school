@@ -2,10 +2,10 @@ package repositories
 
 import (
 	"context"
-	"delayed_notifier/internal/dto"
-	"delayed_notifier/internal/models"
-	"delayed_notifier/pkg/dlq"
 	"fmt"
+	"github.com/chempik1234/wb-l3-1/delayed_notifier/internal/dto"
+	"github.com/chempik1234/wb-l3-1/delayed_notifier/internal/models"
+	"github.com/chempik1234/wb-l3-1/delayed_notifier/pkg/dlq"
 	"github.com/wb-go/wbf/rabbitmq"
 	"github.com/wb-go/wbf/retry"
 )

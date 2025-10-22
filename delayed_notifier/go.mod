@@ -1,4 +1,4 @@
-module delayed_notifier
+module github.com/chempik1234/wb-l3-1/delayed_notifier
 
 go 1.25.1
 

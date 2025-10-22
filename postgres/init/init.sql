@@ -4,7 +4,7 @@ CREATE TABLE notifications (
     publication_at TIMESTAMP WITH TIME ZONE NOT NULL,
     title TEXT NOT NULL,
     message TEXT NOT NULL,
-    sent_to_worker BIT NOT NULL DEFAULT FALSE,
+    sent_to_worker BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );

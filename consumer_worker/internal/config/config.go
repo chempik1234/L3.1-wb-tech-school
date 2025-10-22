@@ -7,36 +7,9 @@ import (
 
 // AppConfig is THE whole config struct
 type AppConfig struct {
-	LogConfig      LogConfig      `env-prefix:"LOG_"`
-	RabbitMQConfig RabbitMQConfig `env-prefix:"RABBITMQ_"`
-}
-
-// LogConfig is the config struct for logging
-//
-// available log levels: "trace", "debug", "info", "warn", "error", "fatal", "panic"
-type LogConfig struct {
-	LogLevel string `env:"LEVEL" envDefault:"info"`
-}
-
-// RabbitMQConfig is the config struct for rabbitMQ (consumer)
-//
-// only the stated props here are supposed to be changeable
-type RabbitMQConfig struct {
-	Queue    string `env:"QUEUE"`
-	Consumer string `env:"CONSUMER"`
-	AutoAck  bool   `env:"AUTO_ACK" envDefault:"false"`
-	NoWait   bool   `env:"NO_WAIT" envDefault:"false"`
-}
-
-// RetryStrategyConfig is the retry strategy config struct
-//
-// specifies how retry operations will be handled
-//
-// supposed to be used for multiple things like RABBITMQ_RETRIES, EMAIL_RETRIES, etc.
-type RetryStrategyConfig struct {
-	Attempts          int `env:"ATTEMPTS" envDefault:"3"`
-	DelayMilliseconds int `env:"DELAY_MILLISECONDS" envDefault:"500"`
-	Backoff           int `env:"BACKOFF" envDefault:"1"`
+	LogConfig           LogConfig           `env-prefix:"LOG_"`
+	RabbitMQConfig      RabbitMQConfig      `env-prefix:"RABBITMQ_"`
+	RabbitMQRetryConfig RetryStrategyConfig `env-prefix:"RETRY_RABBITMQ_"`
 }
 
 // NewAppConfig creates a new struct of "THE config"
@@ -44,22 +17,18 @@ func NewAppConfig(configFilePath, envFilePath string) (*AppConfig, error) {
 	appConfig := &AppConfig{}
 
 	cfg := config.New()
-	cfg.SetDefault("LOG_LEVEL", "info")
-	cfg.SetDefault("RABBITMQ_NO_WAIT", false)
-	cfg.SetDefault("RABBITMQ_AUTO_ACK", false)
+
+	//region defaults
+	cfg.SetDefault("delayed_notifier.log.level", "info")
+
+	cfg.SetDefault("delayed_notifier.retry_rabbitmq.attempts", 3)
+	cfg.SetDefault("delayed_notifier.retry_rabbitmq.delay_milliseconds", 300)
+	cfg.SetDefault("delayed_notifier.retry_rabbitmq.backoff", 1.5)
+	//endregion
 
 	// region flags
 
 	// why flags lol dude
-
-	// does it work as "set as default"? if I specify 8080 as default flag value, then it's always non-empty
-	_ = cfg.DefineFlag("p", "http_port", "SERVER_HTTP_PORT", 8080, "HTTP server port")
-
-	_ = cfg.DefineFlag("l", "log_level", "LOG_LEVEL", "info", "Log level (lowercase)")
-
-	// how about that? If it's empty, will it override my .env?
-	// _ = cfg.DefineFlag("q", "queue", "RABBITMQ_QUEUE", "", "RabbitMQ queue name")
-
 	cfg.ParseFlags()
 	//endregion
 
@@ -69,13 +38,23 @@ func NewAppConfig(configFilePath, envFilePath string) (*AppConfig, error) {
 	}
 
 	// LogConfig
-	appConfig.LogConfig.LogLevel = cfg.GetString("LOG_LEVEL")
+	appConfig.LogConfig.LogLevel = cfg.GetString("delayed_notifier.log.level")
 
 	// RabbitMQConfig
-	appConfig.RabbitMQConfig.Queue = cfg.GetString("RABBITMQ_QUEUE")
-	appConfig.RabbitMQConfig.Consumer = cfg.GetString("RABBITMQ_CONSUMER")
-	appConfig.RabbitMQConfig.AutoAck = cfg.GetBool("RABBITMQ_AUTO_ACK")
-	appConfig.RabbitMQConfig.NoWait = cfg.GetBool("RABBITMQ_NO_WAIT")
+	appConfig.RabbitMQConfig.Exchange = cfg.GetString("delayed_notifier.rabbitmq.exchange")
+	appConfig.RabbitMQConfig.User = cfg.GetString("delayed_notifier.rabbitmq.user")
+	appConfig.RabbitMQConfig.Password = cfg.GetString("delayed_notifier.rabbitmq.password")
+	appConfig.RabbitMQConfig.Host = cfg.GetString("delayed_notifier.rabbitmq.host")
+	appConfig.RabbitMQConfig.Port = cfg.GetInt("delayed_notifier.rabbitmq.port")
+	appConfig.RabbitMQConfig.VHost = cfg.GetString("delayed_notifier.rabbitmq.vhost")
+	appConfig.RabbitMQConfig.QueueForChannel.Email = cfg.GetString("delayed_notifier.rabbitmq.queue_read.email")
+	appConfig.RabbitMQConfig.QueueForChannel.Telegram = cfg.GetString("delayed_notifier.rabbitmq.queue_read.telegram")
+	appConfig.RabbitMQConfig.QueueForChannel.Console = cfg.GetString("delayed_notifier.rabbitmq.queue_read.console")
+
+	// Retries
+	appConfig.RabbitMQRetryConfig.Attempts = cfg.GetInt("delayed_notifier.retry_rabbitmq.attempts")
+	appConfig.RabbitMQRetryConfig.DelayMilliseconds = cfg.GetInt("delayed_notifier.retry_rabbitmq.delay_milliseconds")
+	appConfig.RabbitMQRetryConfig.Backoff = cfg.GetFloat64("delayed_notifier.retry_rabbitmq.backoff")
 
 	return appConfig, nil
 }
