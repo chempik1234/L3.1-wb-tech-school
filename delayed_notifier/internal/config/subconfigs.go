@@ -23,8 +23,11 @@ type RabbitMQConfig struct {
 	Port     int    `env:"PORT"`
 	VHost    string `env:"VHOST"`
 
-	QueueSend QueueSend `env-prefix:"QUEUE_SEND_"`
+	QueueSend string `env:"QUEUE"`
 }
+
+/*
+ Nah, dude!!! Too much complexity!
 
 // QueueSend is the config that lists MQ queues to send notifications into (by channel)
 type QueueSend struct {
@@ -32,6 +35,8 @@ type QueueSend struct {
 	Telegram string `env:"TELEGRAM"`
 	Console  string `env:"CONSOLE"`
 }
+
+*/
 
 // RetryStrategyConfig is the retry strategy config struct
 //

@@ -1,8 +1,8 @@
 package connect
 
 import (
-	"delayed_notifier/internal/config"
 	"fmt"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/config"
 	"github.com/wb-go/wbf/rabbitmq"
 	"github.com/wb-go/wbf/retry"
 )
@@ -46,19 +46,16 @@ func GetRabbitMQPublisher(rabbitCfg config.RabbitMQConfig, rabbitmqRetryStrategy
 	// step 4. declare queues (at least try)
 	rabbitMQQueueManager := rabbitmq.NewQueueManager(rabbitMQChannel)
 
-	queues := []string{rabbitCfg.QueueSend.Email, rabbitCfg.QueueSend.Telegram, rabbitCfg.QueueSend.Console}
-	for _, queue := range queues {
-		err = retry.Do(
-			func() error {
-				_, errQueue := rabbitMQQueueManager.DeclareQueue(queue)
-				return errQueue
-			},
-			rabbitmqRetryStrategy,
-		)
+	err = retry.Do(
+		func() error {
+			_, errQueue := rabbitMQQueueManager.DeclareQueue(rabbitCfg.QueueSend)
+			return errQueue
+		},
+		rabbitmqRetryStrategy,
+	)
 
-		if err != nil {
-			return nil, nil, fmt.Errorf("error declaring queue '%s': %w", queue, err)
-		}
+	if err != nil {
+		return nil, nil, fmt.Errorf("error declaring queue '%s': %w", rabbitCfg.QueueSend, err)
 	}
 
 	// final step. create publisher

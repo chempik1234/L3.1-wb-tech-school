@@ -23,10 +23,11 @@ type RabbitMQConfig struct {
 	Port     int    `env:"PORT"`
 	VHost    string `env:"VHOST"`
 
-	QueueForChannel QueueRead `env:"QUEUE_"`
-	Consumer        string    `env:"CONSUMER"`
-	AutoAck         bool      `env:"AUTO_ACK" envDefault:"false"`
-	NoWait          bool      `env:"NO_WAIT" envDefault:"false"`
+	UniversalQueue string `env:"QUEUE"`
+	// QueueForChannel QueueRead `env:"QUEUE_"`
+	Consumer string `env:"CONSUMER"`
+	AutoAck  bool   `env:"AUTO_ACK" envDefault:"false"`
+	NoWait   bool   `env:"NO_WAIT" envDefault:"false"`
 }
 
 // QueueRead is the config that lists MQ queues to read notifications from (by channel)

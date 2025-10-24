@@ -1,9 +1,9 @@
 package dto
 
 import (
-	"delayed_notifier/internal/models"
 	"encoding/json"
 	"fmt"
+	"github.com/chempik1234/L3.1-wb-tech-school/consumer_worker/internal/models"
 )
 
 // NotificationSendBody is the DTO for sending to MQ

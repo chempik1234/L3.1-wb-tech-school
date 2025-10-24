@@ -88,9 +88,7 @@ func NewAppConfig(configFilePath, envFilePath string) (*AppConfig, error) {
 	appConfig.RabbitMQConfig.Host = cfg.GetString("delayed_notifier.rabbitmq.host")
 	appConfig.RabbitMQConfig.Port = cfg.GetInt("delayed_notifier.rabbitmq.port")
 	appConfig.RabbitMQConfig.VHost = cfg.GetString("delayed_notifier.rabbitmq.vhost")
-	appConfig.RabbitMQConfig.QueueSend.Email = cfg.GetString("delayed_notifier.rabbitmq.queue_send.email")
-	appConfig.RabbitMQConfig.QueueSend.Telegram = cfg.GetString("delayed_notifier.rabbitmq.queue_send.telegram")
-	appConfig.RabbitMQConfig.QueueSend.Console = cfg.GetString("delayed_notifier.rabbitmq.queue_send.console")
+	appConfig.RabbitMQConfig.QueueSend = cfg.GetString("delayed_notifier.rabbitmq.queue")
 
 	// 4. PostgresConfig
 	appConfig.PostgresConfig.MasterDSN = cfg.GetString("delayed_notifier.postgres.master_dsn")

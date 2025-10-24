@@ -2,7 +2,7 @@ package internaltypes
 
 import (
 	"fmt"
-	"github.com/chempik1234/wb-l3-1/delayed_notifier/pkg/types"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/types"
 )
 
 // ErrInvalidNotificationChannelValue describes an error when invalid string was put into NotificationChannel
@@ -12,6 +12,12 @@ const (
 	EMAIL    = "email"
 	TELEGRAM = "telegram"
 	CONSOLE  = "console"
+)
+
+var (
+	ChannelEmail    = NotificationChannel{val: types.NewAnyText(EMAIL)}
+	ChannelTelegram = NotificationChannel{val: types.NewAnyText(TELEGRAM)}
+	ChannelConsole  = NotificationChannel{val: types.NewAnyText(CONSOLE)}
 )
 
 // NotificationChannel is enum'd type for notification channels

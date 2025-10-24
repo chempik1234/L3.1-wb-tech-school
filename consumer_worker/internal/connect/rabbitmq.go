@@ -1,11 +1,24 @@
 package connect
 
 import (
-	"delayed_notifier/internal/config"
 	"fmt"
 	"github.com/wb-go/wbf/rabbitmq"
 	"github.com/wb-go/wbf/retry"
 )
+
+type RabbitMQConsumerConfig struct {
+	Exchange string
+	User     string
+	Password string
+	Host     string
+	Port     int
+	VHost    string
+
+	QueueName string
+	Consumer  string
+	AutoAck   bool
+	NoWait    bool
+}
 
 // GetRabbitMQConsumer simplifies complex rabbitMQ connection process!
 //
@@ -14,7 +27,7 @@ import (
 //	consumer
 //	channel to close
 //	error
-func GetRabbitMQConsumer(rabbitCfg config.RabbitMQConfig, rabbitmqRetryStrategy retry.Strategy) (*rabbitmq.Consumer, *rabbitmq.Channel, error) {
+func GetRabbitMQConsumer(rabbitCfg RabbitMQConsumerConfig, rabbitmqRetryStrategy retry.Strategy) (*rabbitmq.Consumer, *rabbitmq.Channel, error) {
 	// step 1. init connect
 	rabbitMQConn, err := rabbitmq.Connect(
 		fmt.Sprintf("amqp://%s:%s@%s:%d/%s",
@@ -46,24 +59,21 @@ func GetRabbitMQConsumer(rabbitCfg config.RabbitMQConfig, rabbitmqRetryStrategy 
 	// step 4. declare queues (at least try)
 	rabbitMQQueueManager := rabbitmq.NewQueueManager(rabbitMQChannel)
 
-	queues := []string{rabbitCfg.QueueSend.Email, rabbitCfg.QueueSend.Telegram, rabbitCfg.QueueSend.Console}
-	for _, queue := range queues {
-		err = retry.Do(
-			func() error {
-				_, errQueue := rabbitMQQueueManager.DeclareQueue(queue)
-				return errQueue
-			},
-			rabbitmqRetryStrategy,
-		)
+	err = retry.Do(
+		func() error {
+			_, errQueue := rabbitMQQueueManager.DeclareQueue(rabbitCfg.QueueName)
+			return errQueue
+		},
+		rabbitmqRetryStrategy,
+	)
 
-		if err != nil {
-			return nil, nil, fmt.Errorf("error declaring queue '%s': %w", queue, err)
-		}
+	if err != nil {
+		return nil, nil, fmt.Errorf("error declaring queue '%s': %w", rabbitCfg.QueueName, err)
 	}
 
-	// final step. create publisher
-	rabbitmqPublisher := rabbitmq.NewPublisher(
+	// final step. create consumer
+	rabbitmqPublisher := rabbitmq.NewConsumer(
 		rabbitMQChannel,
-		rabbitCfg.Exchange)
+		rabbitmq.NewConsumerConfig(rabbitCfg.QueueName))
 	return rabbitmqPublisher, rabbitMQChannel, nil
 }

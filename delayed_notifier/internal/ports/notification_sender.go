@@ -2,9 +2,9 @@ package ports
 
 import (
 	"context"
-	"delayed_notifier/internal/models"
-	"delayed_notifier/pkg/dlq"
-	"delayed_notifier/pkg/types"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/models"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/dlq"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/types"
 )
 
 // NotificationFetcherRepository is the port for fetching a batch-to-send from DB & changing status

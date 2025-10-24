@@ -1,4 +1,4 @@
-module github.com/chempik1234/wb-l3-1/consumer_worker
+module github.com/chempik1234/L3.1-wb-tech-school/consumer_worker
 
 go 1.25.1
 

@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/chempik1234/wb-l3-1/delayed_notifier/internal/internaltypes"
-	"github.com/chempik1234/wb-l3-1/delayed_notifier/pkg/types"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/internaltypes"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/types"
 )
 
 // Notification is the main model - it's saved in DB, cached and DTOs are converted to it

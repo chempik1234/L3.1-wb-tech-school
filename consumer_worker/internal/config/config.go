@@ -47,9 +47,9 @@ func NewAppConfig(configFilePath, envFilePath string) (*AppConfig, error) {
 	appConfig.RabbitMQConfig.Host = cfg.GetString("delayed_notifier.rabbitmq.host")
 	appConfig.RabbitMQConfig.Port = cfg.GetInt("delayed_notifier.rabbitmq.port")
 	appConfig.RabbitMQConfig.VHost = cfg.GetString("delayed_notifier.rabbitmq.vhost")
-	appConfig.RabbitMQConfig.QueueForChannel.Email = cfg.GetString("delayed_notifier.rabbitmq.queue_read.email")
-	appConfig.RabbitMQConfig.QueueForChannel.Telegram = cfg.GetString("delayed_notifier.rabbitmq.queue_read.telegram")
-	appConfig.RabbitMQConfig.QueueForChannel.Console = cfg.GetString("delayed_notifier.rabbitmq.queue_read.console")
+	appConfig.RabbitMQConfig.UniversalQueue = cfg.GetString("delayed_notifier.rabbitmq.queue")
+	// appConfig.RabbitMQConfig.QueueForChannel.Telegram = cfg.GetString("delayed_notifier.rabbitmq.queue_read.telegram")
+	// appConfig.RabbitMQConfig.QueueForChannel.Console = cfg.GetString("delayed_notifier.rabbitmq.queue_read.console")
 
 	// Retries
 	appConfig.RabbitMQRetryConfig.Attempts = cfg.GetInt("delayed_notifier.retry_rabbitmq.attempts")

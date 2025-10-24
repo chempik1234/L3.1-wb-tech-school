@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
-	"delayed_notifier/internal/models"
-	"delayed_notifier/internal/ports"
-	"delayed_notifier/pkg/dlq"
-	"delayed_notifier/pkg/types"
 	"fmt"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/models"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/ports"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/dlq"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/types"
 	"github.com/wb-go/wbf/zlog"
 	"golang.org/x/sync/errgroup"
 	"time"
