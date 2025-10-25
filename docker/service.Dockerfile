@@ -4,9 +4,10 @@ FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS build
 WORKDIR /src
 
 # COPY .env .env
-# COPY ./config /app/config
 
 RUN mkdir /app && touch /app/config.yaml
+
+COPY ./db /app/db
 
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=bind,source=go.sum,target=go.sum \

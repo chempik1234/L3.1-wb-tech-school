@@ -1,8 +1,7 @@
-// get_notification.go
 package dto
 
 import (
-	"delayed_notifier/pkg/types"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 

@@ -1,8 +1,8 @@
 package internaltypes
 
 import (
-	"delayed_notifier/pkg/types"
 	"fmt"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/types"
 )
 
 // ErrInvalidNotificationChannelValue describes an error when invalid string was put into NotificationChannel

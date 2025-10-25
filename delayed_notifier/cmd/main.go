@@ -9,6 +9,7 @@ import (
 	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/service"
 	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/transport"
 	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/http_server"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/postgres"
 	"github.com/wb-go/wbf/dbpg"
 	"github.com/wb-go/wbf/rabbitmq"
 	"github.com/wb-go/wbf/redis"
@@ -20,6 +21,8 @@ import (
 )
 
 func main() {
+	log.Println("starting delayed notifier service (main.go:24)")
+
 	//region load config from env
 	cfg, err := config.NewAppConfig("/app/config.yaml", "")
 	if err != nil {
@@ -36,13 +39,13 @@ func main() {
 	//endregion
 
 	//region retry (define first for later postgres, rabbitmq, redis connections)
-	postgresRetryStategy := retry.Strategy{
+	postgresRetryStrategy := retry.Strategy{
 		Attempts: cfg.PostgresRetryConfig.Attempts,
 		Delay:    time.Duration(cfg.PostgresRetryConfig.DelayMilliseconds) * time.Millisecond,
 		Backoff:  cfg.PostgresRetryConfig.Backoff,
 	}
 
-	redisRetryStategy := retry.Strategy{
+	redisRetryStrategy := retry.Strategy{
 		Attempts: cfg.RedisRetryConfig.Attempts,
 		Delay:    time.Duration(cfg.RedisRetryConfig.DelayMilliseconds) * time.Millisecond,
 		Backoff:  cfg.RedisRetryConfig.Backoff,
@@ -96,12 +99,28 @@ func main() {
 
 			return postgresConnErr
 		},
-		postgresRetryStategy)
+		postgresRetryStrategy)
 	if err != nil {
 		zlog.Logger.Fatal().Err(err).Msg("couldn't create postgres balancer")
 	}
 
 	zlog.Logger.Info().Msg("postgres balancer created")
+
+	migrationsPath := "file:///app/db/migrations"
+
+	err = postgres.MigrateUp(cfg.PostgresConfig.MasterDSN, migrationsPath)
+	if err != nil {
+		zlog.Logger.Fatal().Err(err).Msg("couldn't migrate postgres on master DSN")
+	}
+	for i, dsn := range cfg.PostgresConfig.SlaveDSNs {
+		if len(dsn) == 0 {
+			continue
+		}
+		err = postgres.MigrateUp(dsn, migrationsPath)
+		if err != nil {
+			zlog.Logger.Fatal().Err(err).Int("dsn_index", i).Msg("couldn't migrate postgres on slave DSN")
+		}
+	}
 	//endregion
 
 	//region redis
@@ -115,8 +134,8 @@ func main() {
 	//endregion
 
 	//region services
-	postgresRepo := repositories.NewNotificationPostgres(postgresDB, postgresRetryStategy)
-	redisRepo := repositories.NewNotificationRedis(redisClient, redisRetryStategy, redisExpiration)
+	postgresRepo := repositories.NewNotificationPostgres(postgresDB, postgresRetryStrategy)
+	redisRepo := repositories.NewNotificationRedis(redisClient, redisRetryStrategy, redisExpiration)
 	rabbitmqRepo := repositories.NewNotificationRabbitMQ(rabbitmqPublisher, rabbitmqRetryStrategy)
 
 	senderService := service.NewSenderService(

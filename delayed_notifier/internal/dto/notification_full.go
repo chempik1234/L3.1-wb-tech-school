@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"delayed_notifier/internal/models"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/models"
 )
 
 // FullNotificationBody is a DTO for fully-serialized Notification model

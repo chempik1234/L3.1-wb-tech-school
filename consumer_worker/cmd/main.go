@@ -28,10 +28,11 @@ func main() {
 	defer ctxStop()
 
 	// load config from env
-	cfg, err := config.NewAppConfig("", "")
+	cfg, err := config.NewAppConfig("/app/config.yaml", "")
 	if err != nil {
 		log.Fatal(fmt.Errorf("error loading config: %w", err))
 	}
+	zlog.Logger.Info().Msg("config read")
 
 	// init zlog.Logger with given LogLevel
 	zlog.InitConsole()
@@ -39,6 +40,7 @@ func main() {
 	if err != nil {
 		log.Fatal(fmt.Errorf("error setting log level to '%s': %w", cfg.LogConfig.LogLevel, err))
 	}
+	zlog.Logger.Info().Msg("logger console init")
 
 	//region rabbitMQ
 
@@ -71,6 +73,7 @@ func main() {
 	if err != nil {
 		zlog.Logger.Fatal().Err(err).Msg("error creating rabbitmq consumer")
 	}
+	zlog.Logger.Info().Msg("rabbit connected")
 	//endregion
 
 	//region service
@@ -82,17 +85,19 @@ func main() {
 		internaltypes.ChannelTelegram: senders.NewConsoleSender(), // TODO: change
 	}
 
-	notificationService := service.NewNotificationService(rabbitmqReceiver, channelToSender)
+	notificationService := service.NewNotificationService(rabbitmqReceiver, channelToSender, time.Duration(50)*time.Millisecond)
 
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
 	go func(wg *sync.WaitGroup) {
 		defer wg.Done()
+		zlog.Logger.Info().Msg("starting service struct")
 		errService := notificationService.Run(ctx)
 		if errService != nil {
 			zlog.Logger.Error().Err(errService).Msg("error running notification service")
 		}
+		zlog.Logger.Info().Msg("service struct exited")
 	}(wg)
 	//endregion
 

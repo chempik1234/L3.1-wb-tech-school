@@ -2,11 +2,11 @@ package repositories
 
 import (
 	"context"
-	"delayed_notifier/internal/models"
-	"delayed_notifier/pkg/types"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/models"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/types"
 	"github.com/wb-go/wbf/redis"
 	"github.com/wb-go/wbf/retry"
 	"time"

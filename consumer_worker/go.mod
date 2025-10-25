@@ -2,10 +2,14 @@ module github.com/chempik1234/L3.1-wb-tech-school/consumer_worker
 
 go 1.25.1
 
-require github.com/wb-go/wbf v0.0.7
+require (
+	github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier v0.0.0-20251024211500-188ef78e2b2a
+	github.com/wb-go/wbf v0.0.7
+)
 
 require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect

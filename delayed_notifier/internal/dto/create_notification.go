@@ -1,10 +1,10 @@
 package dto
 
 import (
-	"delayed_notifier/internal/internaltypes"
-	"delayed_notifier/internal/models"
-	"delayed_notifier/pkg/types"
 	"fmt"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/internaltypes"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/models"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/types"
 )
 
 // CreateNotificationBody is a DTO for create endpoint

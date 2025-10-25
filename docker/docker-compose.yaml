@@ -11,12 +11,23 @@ x-def-logging: &default-logging
 
 x-delayer_notifier-template: &delayer_notifier-template
   image: delayed_notifier
-  # build:
-  #   context: ../delayed_notifier
-  #   dockerfile: ./service.Dockerfile
   restart: unless-stopped
-  # environment:
-  #   DELAYED_NOTIFIER_RABBITMQ_CONSUMER: "notifier_1"
+  # entrypoint: "sleep 1h"
+  depends_on:
+    rabbitmq:
+      condition: service_healthy
+    postgres_master:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  env_file:
+    - ../config/.env
+  <<: *default-logging
+
+x-consumer_worker-template: &consumer_worker-template
+  image: consumer_worker
+  restart: unless-stopped
+  # entrypoint: "sleep 1h"
   depends_on:
     rabbitmq:
       condition: service_healthy
@@ -30,12 +41,13 @@ services:
     <<: *delayer_notifier-template
     expose:
       - "8081"
-    scale: 3
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      postgres_master:
-        condition: service_healthy
+    scale: 2
+    networks:
+      - backend
+
+  consumer_worker:
+    <<: *consumer_worker-template
+    scale: 2
     networks:
       - backend
 
@@ -82,10 +94,9 @@ services:
       - ../config/.env
     volumes:
       - postgres_master_data:/var/lib/postgresql/data
-      - ./postgres/init:/docker-entrypoint-initdb.d
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "pg_isready -d delayed_notifier -U delayed_notifier" ]
+      test: [ "CMD", "pg_isready", "-d", "delayed_notifier", "-U", "delayed_notifier" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -123,9 +134,27 @@ services:
   #     - ../config/test/.env
   #   network_mode: host
 
+  #region monitoring
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+      - "9095:9095"
+    volumes:
+      - ../loki/loki-config.yml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3100/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
 volumes:
   postgres_master_data:
   redis_data:
 
 networks:
   backend:
+    driver: bridge

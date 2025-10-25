@@ -15,9 +15,10 @@ const (
 )
 
 var (
-	ChannelEmail    = NotificationChannel{val: types.NewAnyText(EMAIL)}
-	ChannelTelegram = NotificationChannel{val: types.NewAnyText(TELEGRAM)}
-	ChannelConsole  = NotificationChannel{val: types.NewAnyText(CONSOLE)}
+	ChannelEmail      = NotificationChannel{val: types.NewAnyText(EMAIL)}
+	ChannelTelegram   = NotificationChannel{val: types.NewAnyText(TELEGRAM)}
+	ChannelConsole    = NotificationChannel{val: types.NewAnyText(CONSOLE)}
+	ChannelAllStrings = []string{EMAIL, TELEGRAM, CONSOLE}
 )
 
 // NotificationChannel is enum'd type for notification channels

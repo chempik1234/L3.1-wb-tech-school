@@ -1,0 +1,1 @@
+drop schema if exists delayed_notifier;

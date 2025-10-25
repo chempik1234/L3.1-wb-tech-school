@@ -2,12 +2,13 @@ package repositories
 
 import (
 	"context"
-	"delayed_notifier/internal/dto"
-	"delayed_notifier/internal/models"
-	"delayed_notifier/pkg/dlq"
 	"fmt"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/dto"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/models"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/dlq"
 	"github.com/wb-go/wbf/rabbitmq"
 	"github.com/wb-go/wbf/retry"
+	"github.com/wb-go/wbf/zlog"
 )
 
 // NotificationRabbitMQ is the RabbitMQ implementation on ports.NotificationPublisherRepository
@@ -37,6 +38,7 @@ func (n *NotificationRabbitMQ) SendOne(ctx context.Context, notification *models
 	if err != nil {
 		return fmt.Errorf("couldn't send message to rabbitMQ: %w", err)
 	}
+	zlog.Logger.Debug().Msg("sent one message to rabbitMQ")
 	return nil
 }
 
@@ -50,11 +52,13 @@ func (n *NotificationRabbitMQ) SendMany(ctx context.Context, notifications []*mo
 			if err != nil {
 				DLQ.Put(notification, fmt.Errorf("couldn't send message to rabbitMQ: %w", err))
 			}
+
 			err = n.publisher.PublishWithRetry(body, n.routingKey(notification), "application/json", n.retryStrategy)
 			if err != nil {
 				DLQ.Put(notification, fmt.Errorf("couldn't send message to rabbitMQ: %w", err))
+			} else {
+				zlog.Logger.Debug().Msg("sent message in batch to rabbitMQ")
 			}
-
 		}
 		DLQ.Close()
 	}()

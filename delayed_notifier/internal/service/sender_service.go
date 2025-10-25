@@ -51,30 +51,15 @@ func (s *SenderService) Run(ctx context.Context) {
 	ticker := time.NewTicker(s.fetchPeriod)
 	defer ticker.Stop()
 
+	s.lifeCycle(ctx)
+
 out:
 	for {
 		select {
 		case <-ctx.Done():
 			break out
 		case <-ticker.C:
-
-			// life cycle
-			now := time.Now()
-			s.nextFetchIsAt = now.Add(s.fetchPeriod)
-
-			// step 1. Get batch
-			batch, err := s.storageFetcherRepo.Fetch(ctx, types.NewDateTime(now.Add(s.fetchMaxDiapason)))
-			if err != nil {
-				zlog.Logger.Error().Err(fmt.Errorf("failed to fetch batch for sending: %w", err)).Msg("error in SenderService loop")
-				continue
-			}
-
-			// step 2. Send it
-			err = s.SendBatch(ctx, batch)
-			if err != nil {
-				zlog.Logger.Error().Err(fmt.Errorf("failed to send batch: %w", err)).Msg("error in SenderService loop")
-				continue
-			}
+			s.lifeCycle(ctx)
 		}
 	}
 }
@@ -83,7 +68,14 @@ out:
 //
 // should be called when an ASAP notification is created (it's publication datetime is too close to “now()“)
 func (s *SenderService) QuickSend(ctx context.Context, object *models.Notification) error {
-	return s.publisherRepo.SendOne(ctx, object) // it calls retry inside!
+	err := s.publisherRepo.SendOne(ctx, object) // it calls retry inside!
+	go func() {
+		errMark := s.storageFetcherRepo.MarkAsSent(ctx, []*types.UUID{object.ID})
+		if errMark != nil {
+			zlog.Logger.Error().Err(errMark).Msg("failed to mark as sent")
+		}
+	}()
+	return err
 }
 
 // SendBatch sends given notifications as a batch
@@ -97,6 +89,19 @@ func (s *SenderService) SendBatch(ctx context.Context, objects []*models.Notific
 	var err error
 	errGroup := &errgroup.Group{}
 	errorsAmount := 0
+
+	// Mark all as sent
+	// TODO: de-mark failed ones
+	go func() {
+		ids := make([]*types.UUID, len(objects))
+		for i, object := range objects {
+			ids[i] = object.ID
+		}
+		err = s.storageFetcherRepo.MarkAsSent(ctx, ids)
+		if err != nil {
+			zlog.Logger.Error().Err(err).Msg("failed to mark as sent")
+		}
+	}()
 
 	// if bad, then retry each one
 	//
@@ -158,4 +163,26 @@ func (s *SenderService) QuickSendIfNeeded(ctx context.Context, object *models.No
 		return s.QuickSend(ctx, object)
 	}
 	return nil
+}
+
+func (s *SenderService) lifeCycle(ctx context.Context) {
+	// life cycle
+	now := time.Now()
+	s.nextFetchIsAt = now.Add(s.fetchPeriod)
+
+	// step 1. Get batch
+	dateTimeUpTo := types.NewDateTime(now.Add(s.fetchMaxDiapason))
+	batch, err := s.storageFetcherRepo.Fetch(ctx, dateTimeUpTo)
+	if err != nil {
+		zlog.Logger.Error().Err(fmt.Errorf("failed to fetch batch for sending: %w", err)).Msg("error in SenderService loop")
+		return
+	}
+	zlog.Logger.Info().Int("amount", len(batch)).Stringer("max_publication_at", dateTimeUpTo).Msg("fetched batch")
+
+	// step 2. Send it
+	err = s.SendBatch(ctx, batch)
+	if err != nil {
+		zlog.Logger.Error().Err(fmt.Errorf("failed to send batch: %w", err)).Msg("error in SenderService loop")
+		return
+	}
 }

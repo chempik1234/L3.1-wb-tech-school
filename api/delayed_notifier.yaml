@@ -4,7 +4,156 @@ info:
   description: "Delayed notifier docker compose"
   version: 1.0.0
 servers:
-  - url: 'https'
+  - url: http://localhost:80/api
+    description: Development server
+
 paths:
-  
-# TODO: vibecode me
+  /notify:
+    post:
+      summary: Create a new notification
+      operationId: createNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationBody'
+      responses:
+        '201':
+          description: Notification created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FullNotificationBody'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /notify/{id}:
+    get:
+      summary: Get notification status
+      operationId: getNotification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FullNotificationBody'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Cancel a scheduled notification
+      operationId: deleteNotification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification cancelled successfully
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    CreateNotificationBody:
+      type: object
+      required:
+        - publication_at
+        - channel
+        - content
+      properties:
+        publication_at:
+          type: string
+          format: date-time
+          example: "2025-10-08T21:30:00Z"
+        channel:
+          type: string
+          example: "email"
+        content:
+          type: object
+          required:
+            - title
+            - message
+          properties:
+            title:
+              type: string
+              example: "Meeting Reminder"
+            message:
+              type: string
+              example: "Your meeting starts in 15 minutes"
+
+    FullNotificationBody:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        publication_at:
+          type: string
+          format: date-time
+          example: "2025-10-08T21:30:00Z"
+        channel:
+          type: string
+          example: "email"
+        sent:
+          type: boolean
+          example: false
+        content:
+          type: object
+          properties:
+            title:
+              type: string
+              example: "Meeting Reminder"
+            message:
+              type: string
+              example: "Your meeting starts in 15 minutes"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "incorrect 'publication_at' 'invalid-date': invalid datetime format"

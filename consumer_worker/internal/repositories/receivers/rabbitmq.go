@@ -3,6 +3,7 @@ package receivers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/chempik1234/L3.1-wb-tech-school/consumer_worker/internal/dto"
 	"github.com/chempik1234/L3.1-wb-tech-school/consumer_worker/internal/internaltypes"
 	"github.com/chempik1234/L3.1-wb-tech-school/consumer_worker/internal/models"
 	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/types"
@@ -90,15 +91,7 @@ func (r *RabbitMQReceiver) processMessage(delivery []byte) (*models.Notification
 	// step 1. read (passed)
 
 	// step 2. parse
-	var messageData struct {
-		Content struct {
-			Title   string `json:"title"`
-			Message string `json:"message"`
-		} `json:"content"`
-		ID            string `json:"id"`
-		PublicationAt string `json:"publication_at"`
-		Channel       string `json:"channel"`
-	}
+	var messageData dto.NotificationSendBody
 
 	// step 2.1: no ack if bad content! but wbf limits me
 	if err := json.Unmarshal(delivery, &messageData); err != nil {
@@ -106,7 +99,7 @@ func (r *RabbitMQReceiver) processMessage(delivery []byte) (*models.Notification
 	}
 
 	// step 3. deserialize
-	notification, err := r.convertToNotification(messageData)
+	notification, err := dto.NotificationModelFromSendDTO(&messageData)
 	if err != nil {
 		return nil, fmt.Errorf("bad message (could't convert to model): %w", err)
 	}
@@ -138,7 +131,7 @@ func (r *RabbitMQReceiver) convertToNotification(data struct {
 		return nil, fmt.Errorf("invalid channel: %w", err)
 	}
 
-	publicationAt, err := types.DateTimeFromString(data.PublicationAt)
+	publicationAt, err := types.NewDateTimeFromString(data.PublicationAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid publication date: %w", err)
 	}

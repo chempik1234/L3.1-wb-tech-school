@@ -2,6 +2,8 @@ package connect
 
 import (
 	"fmt"
+	"github.com/chempik1234/L3.1-wb-tech-school/consumer_worker/internal/internaltypes"
+	"github.com/rabbitmq/amqp091-go"
 	"github.com/wb-go/wbf/rabbitmq"
 	"github.com/wb-go/wbf/retry"
 )
@@ -59,9 +61,18 @@ func GetRabbitMQConsumer(rabbitCfg RabbitMQConsumerConfig, rabbitmqRetryStrategy
 	// step 4. declare queues (at least try)
 	rabbitMQQueueManager := rabbitmq.NewQueueManager(rabbitMQChannel)
 
+	// bind to the queue by using channel names as routing keys!
 	err = retry.Do(
 		func() error {
-			_, errQueue := rabbitMQQueueManager.DeclareQueue(rabbitCfg.QueueName)
+			q, errQueue := rabbitMQQueueManager.DeclareQueue(rabbitCfg.QueueName)
+			if errQueue == nil {
+				for _, channelString := range internaltypes.ChannelAllStrings {
+					errQueue = rabbitMQChannel.QueueBind(q.Name, channelString, rabbitMQExchange.Name(), rabbitCfg.NoWait, make(amqp091.Table))
+					if errQueue != nil {
+						break
+					}
+				}
+			}
 			return errQueue
 		},
 		rabbitmqRetryStrategy,

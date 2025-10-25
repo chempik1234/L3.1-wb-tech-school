@@ -28,6 +28,7 @@ docker_integration_test:
 
 build:
 	docker build -t delayed_notifier -f docker/service.Dockerfile ./delayed_notifier
+	docker build -t consumer_worker -f docker/service.Dockerfile ./consumer_worker
 
 kubernetes_up:
 	echo "kubectl apply -f ?"

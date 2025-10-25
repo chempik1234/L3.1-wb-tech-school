@@ -1,9 +1,10 @@
 package dto
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/chempik1234/L3.1-wb-tech-school/consumer_worker/internal/internaltypes"
 	"github.com/chempik1234/L3.1-wb-tech-school/consumer_worker/internal/models"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/types"
 )
 
 // NotificationSendBody is the DTO for sending to MQ
@@ -19,28 +20,31 @@ type notificationBodyContent struct {
 	Message string `json:"message"`
 }
 
-// NotificationSendBodyFromEntity creates a new *NotificationSendBody from given object
-//
-// Use it to send to MQ
-func NotificationSendBodyFromEntity(object *models.Notification) *NotificationSendBody {
-	return &NotificationSendBody{
-		Content: notificationBodyContent{
-			Title:   object.Content.Title.String(),
-			Message: object.Content.Message.String(),
-		},
-		ID:            object.ID.String(),
-		PublicationAt: object.PublicationAt.String(),
-		Channel:       object.Channel.String(),
-	}
-}
-
-// NotificationSendBodyFromEntityBytes creates a ready-to-send []byte body from given object
-//
-// uses NotificationSendBodyFromEntity
-func NotificationSendBodyFromEntityBytes(object *models.Notification) ([]byte, error) {
-	result, err := json.Marshal(NotificationSendBodyFromEntity(object))
+// NotificationModelFromSendDTO deserializes DTO into a normal *models.Notification struct
+func NotificationModelFromSendDTO(dto *NotificationSendBody) (*models.Notification, error) {
+	publicationAt, err := types.NewDateTimeFromString(dto.PublicationAt)
 	if err != nil {
-		return nil, fmt.Errorf("could not marshal NotificationSendBody: %w", err)
+		return nil, fmt.Errorf("invalid publication_at: %w", err)
 	}
-	return result, nil
+
+	id, err := types.NewUUID(dto.ID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid id: %w", err)
+	}
+
+	channel, err := internaltypes.NotificationChannelFromString(dto.Channel)
+	if err != nil {
+		return nil, fmt.Errorf("invalid channel: %w", err)
+	}
+
+	return &models.Notification{
+		PublicationAt: publicationAt,
+		ID:            &id,
+		Channel:       channel,
+		Content: models.NotificationContent{
+			Title:   types.NewAnyText(dto.Content.Title),
+			Message: types.NewAnyText(dto.Content.Message),
+		},
+		Sent: true,
+	}, nil
 }

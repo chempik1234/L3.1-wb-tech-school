@@ -2,12 +2,12 @@ package transport
 
 import (
 	"context"
-	"delayed_notifier/internal/dto"
-	errors2 "delayed_notifier/internal/errors"
-	"delayed_notifier/internal/models"
-	"delayed_notifier/internal/service"
 	"errors"
 	"fmt"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/dto"
+	internalerrors "github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/errors"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/models"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -74,7 +74,7 @@ func (h *NotifyHandler) GetNotification(c *gin.Context) {
 
 	notification, err := h.crudService.GetNotification(context.Background(), id)
 	if err != nil {
-		if errors.Is(err, errors2.ErrNotificationNotFound) {
+		if errors.Is(err, internalerrors.ErrNotificationNotFound) {
 			c.AbortWithStatusJSON(
 				http.StatusNotFound,
 				gin.H{"error": "notification not found"},
@@ -113,7 +113,7 @@ func (h *NotifyHandler) DeleteNotification(c *gin.Context) {
 
 	err = h.crudService.DeleteNotification(context.Background(), id)
 	if err != nil {
-		if errors.Is(err, errors2.ErrNotificationNotFound) {
+		if errors.Is(err, internalerrors.ErrNotificationNotFound) {
 			c.AbortWithStatusJSON(
 				http.StatusNotFound,
 				gin.H{"error": "notification not found"},
