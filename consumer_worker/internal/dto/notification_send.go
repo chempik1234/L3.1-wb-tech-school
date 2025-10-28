@@ -13,6 +13,7 @@ type NotificationSendBody struct {
 	ID            string                  `json:"id"`
 	PublicationAt string                  `json:"publication_at"`
 	Channel       string                  `json:"channel"`
+	SendTo        string                  `json:"send_to,omitempty"`
 }
 
 type notificationBodyContent struct {
@@ -37,6 +38,11 @@ func NotificationModelFromSendDTO(dto *NotificationSendBody) (*models.Notificati
 		return nil, fmt.Errorf("invalid channel: %w", err)
 	}
 
+	sendTo, err := internaltypes.NewSendTo(types.NewAnyText(dto.SendTo), channel)
+	if err != nil {
+		return nil, fmt.Errorf("invalid send_to: %w", err)
+	}
+
 	return &models.Notification{
 		PublicationAt: publicationAt,
 		ID:            &id,
@@ -45,6 +51,7 @@ func NotificationModelFromSendDTO(dto *NotificationSendBody) (*models.Notificati
 			Title:   types.NewAnyText(dto.Content.Title),
 			Message: types.NewAnyText(dto.Content.Message),
 		},
-		Sent: true,
+		Sent:   true,
+		SendTo: sendTo,
 	}, nil
 }

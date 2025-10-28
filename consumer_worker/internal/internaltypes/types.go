@@ -3,21 +3,30 @@ package internaltypes
 import (
 	"fmt"
 	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/types"
+	"net/mail"
+	"strconv"
 )
 
 // ErrInvalidNotificationChannelValue describes an error when invalid string was put into NotificationChannel
 var ErrInvalidNotificationChannelValue = fmt.Errorf("invalid notification channel value: possible ones are: '%s', '%s', '%s'", EMAIL, TELEGRAM, CONSOLE)
 
 const (
-	EMAIL    = "email"
+	// EMAIL is the constant value for email channel string value
+	EMAIL = "email"
+	// TELEGRAM is the constant value for telegram channel string value
 	TELEGRAM = "telegram"
-	CONSOLE  = "console"
+	// CONSOLE is the constant value for console channel string value
+	CONSOLE = "console"
 )
 
 var (
-	ChannelEmail      = NotificationChannel{val: types.NewAnyText(EMAIL)}
-	ChannelTelegram   = NotificationChannel{val: types.NewAnyText(TELEGRAM)}
-	ChannelConsole    = NotificationChannel{val: types.NewAnyText(CONSOLE)}
+	// ChannelEmail is an example channel with value EMAIL
+	ChannelEmail = NotificationChannel{val: EMAIL}
+	// ChannelTelegram is an example channel with value TELEGRAM
+	ChannelTelegram = NotificationChannel{val: TELEGRAM}
+	// ChannelConsole is an example channel with value CONSOLE
+	ChannelConsole = NotificationChannel{val: CONSOLE}
+	// ChannelAllStrings is the collection of all channel name constants
 	ChannelAllStrings = []string{EMAIL, TELEGRAM, CONSOLE}
 )
 
@@ -45,4 +54,37 @@ func (c *NotificationChannel) String() string {
 		return "unset"
 	}
 	return c.val.String()
+}
+
+// SendTo is a value type that stores an address of user according to notification channel
+//
+//	email	-> some@email.com
+//	telegram	-> 13123123129 user id
+//	console	-> any
+type SendTo struct {
+	val types.AnyText
+}
+
+// String returns value stored in SendTo
+func (s SendTo) String() string {
+	return s.val.String()
+}
+
+// NewSendTo creates a new SendTo with a valid address for given channel
+func NewSendTo(val types.AnyText, channel NotificationChannel) (SendTo, error) {
+	switch channel {
+	case ChannelEmail:
+		_, err := mail.ParseAddress(channel.val.String())
+		if err != nil {
+			return SendTo{}, fmt.Errorf("invalid email address: %w", err)
+		}
+	case ChannelTelegram:
+		_, err := strconv.ParseInt(val.String(), 10, 64)
+		if err != nil {
+			return SendTo{}, fmt.Errorf("invalid telegram address: %s", val.String())
+		}
+	default:
+		break
+	}
+	return SendTo{val: val}, nil
 }

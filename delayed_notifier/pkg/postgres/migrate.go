@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres" // for postgres driver
+	_ "github.com/golang-migrate/migrate/v4/source/file"       // for file driver (search for sql)
 )
 
 // MigrateUp runs all migrations by path and DSN

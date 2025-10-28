@@ -11,6 +11,7 @@ type FullNotificationBody struct {
 	PublicationAt string                  `json:"publication_at"`
 	Channel       string                  `json:"channel"`
 	Sent          bool                    `json:"sent"`
+	SendTo        string                  `json:"send_to"`
 }
 
 type notificationBodyContent struct {
@@ -28,6 +29,7 @@ func FullNotificationBodyFromEntity(model *models.Notification) *FullNotificatio
 			Title:   model.Content.Title.String(),
 			Message: model.Content.Message.String(),
 		},
-		Sent: model.Sent,
+		Sent:   model.Sent,
+		SendTo: model.SendTo.String(),
 	}
 }

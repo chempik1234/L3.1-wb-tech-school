@@ -47,3 +47,11 @@ type RetryStrategyConfig struct {
 	DelayMilliseconds int     `env:"DELAY_MILLISECONDS" envDefault:"500"`
 	Backoff           float64 `env:"BACKOFF" envDefault:"1"`
 }
+
+// EmailConfig is the config for SMTP emailing
+type EmailConfig struct {
+	From     string `env:"FROM"`
+	Host     string `env:"HOST"`
+	Port     int    `env:"PORT"`
+	Password string `env:"PASSWORD"`
+}

@@ -12,6 +12,8 @@ type Notification struct {
 	Channel       internaltypes.NotificationChannel
 	Content       NotificationContent
 	Sent          bool
+
+	SendTo internaltypes.SendTo
 }
 
 // NotificationContent is the universal struct for content: notification has a title and a message

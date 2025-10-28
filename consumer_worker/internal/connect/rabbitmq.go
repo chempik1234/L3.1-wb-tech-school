@@ -8,6 +8,9 @@ import (
 	"github.com/wb-go/wbf/retry"
 )
 
+// RabbitMQConsumerConfig is the options struct for GetRabbitMQConsumer
+//
+// too much fields to pass as arguments in function
 type RabbitMQConsumerConfig struct {
 	Exchange string
 	User     string

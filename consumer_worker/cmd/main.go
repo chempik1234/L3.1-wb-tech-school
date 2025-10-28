@@ -80,8 +80,15 @@ func main() {
 	rabbitmqReceiver := receivers.NewRabbitMQReceiver(rabbitConsumer, rabbitmqChannelToClose, rabbitmqRetryStrategy)
 
 	channelToSender := map[internaltypes.NotificationChannel]ports.NotificationSender{
-		internaltypes.ChannelConsole:  senders.NewConsoleSender(),
-		internaltypes.ChannelEmail:    senders.NewConsoleSender(), // TODO: change
+		internaltypes.ChannelConsole: senders.NewConsoleSender(),
+		internaltypes.ChannelEmail: senders.NewEmailSender(
+			cfg.EmailConfig.From, cfg.EmailConfig.Password, cfg.EmailConfig.Host, cfg.EmailConfig.Port,
+			retry.Strategy{
+				Attempts: cfg.EmailRetryConfig.Attempts,
+				Delay:    time.Duration(cfg.EmailRetryConfig.DelayMilliseconds) * time.Millisecond,
+				Backoff:  cfg.EmailRetryConfig.Backoff,
+			},
+		),
 		internaltypes.ChannelTelegram: senders.NewConsoleSender(), // TODO: change
 	}
 

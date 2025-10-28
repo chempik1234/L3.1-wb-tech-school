@@ -8,7 +8,7 @@ import (
 	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/repositories"
 	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/service"
 	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/internal/transport"
-	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/http_server"
+	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/httpserver"
 	"github.com/chempik1234/L3.1-wb-tech-school/delayed_notifier/pkg/postgres"
 	"github.com/wb-go/wbf/dbpg"
 	"github.com/wb-go/wbf/rabbitmq"
@@ -160,7 +160,7 @@ func main() {
 	//region Start HTTP
 	notifyHTTPHandler := transport.NewNotifyHandler(crudService)
 	appRouter := transport.AssembleRouter(notifyHTTPHandler)
-	appServer := http_server.NewHTTPServer(appRouter)
+	appServer := httpserver.NewHTTPServer(appRouter)
 
 	zlog.Logger.Info().Int("http_port", cfg.ServerConfig.HTTPPort).Msg("server starting :http_port")
 

@@ -109,11 +109,11 @@ func (s *SenderService) SendBatch(ctx context.Context, objects []*models.Notific
 	//
 	// So each one is in separate goroutine
 	for obj := range dlqNotifications.Items() {
-		errorsAmount += 1
+		errorsAmount++
 
 		errGroup.Go(func() error {
 
-			return func(obj *dlq.DLQItem[*models.Notification]) error {
+			return func(obj *dlq.Item[*models.Notification]) error {
 
 				zlog.Logger.Error().
 					Err(obj.Error()).
@@ -129,11 +129,11 @@ func (s *SenderService) SendBatch(ctx context.Context, objects []*models.Notific
 						Msg("failed to send object!")
 
 					return err
-				} else {
-					zlog.Logger.Info().
-						Stringer("id", obj.Value().ID).
-						Msg("successfully sent object on second try!")
 				}
+
+				zlog.Logger.Info().
+					Stringer("id", obj.Value().ID).
+					Msg("successfully sent object on second try!")
 
 				return nil
 			}(obj)

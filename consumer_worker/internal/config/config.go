@@ -9,7 +9,9 @@ import (
 type AppConfig struct {
 	LogConfig           LogConfig           `env-prefix:"LOG_"`
 	RabbitMQConfig      RabbitMQConfig      `env-prefix:"RABBITMQ_"`
+	EmailConfig         EmailConfig         `env-prefix:"EMAIL_"`
 	RabbitMQRetryConfig RetryStrategyConfig `env-prefix:"RETRY_RABBITMQ_"`
+	EmailRetryConfig    RetryStrategyConfig `env-prefix:"RETRY_RABBITMQ_"`
 }
 
 // NewAppConfig creates a new struct of "THE config"
@@ -24,6 +26,10 @@ func NewAppConfig(configFilePath, envFilePath string) (*AppConfig, error) {
 	cfg.SetDefault("consumer_worker.retry_rabbitmq.attempts", 3)
 	cfg.SetDefault("consumer_worker.retry_rabbitmq.delay_milliseconds", 300)
 	cfg.SetDefault("consumer_worker.retry_rabbitmq.backoff", 1.5)
+
+	cfg.SetDefault("consumer_worker.retry_email.attempts", 3)
+	cfg.SetDefault("consumer_worker.retry_email.delay_milliseconds", 300)
+	cfg.SetDefault("consumer_worker.retry_email.backoff", 1.5)
 	//endregion
 
 	// region flags
@@ -51,10 +57,20 @@ func NewAppConfig(configFilePath, envFilePath string) (*AppConfig, error) {
 	// appConfig.RabbitMQConfig.QueueForChannel.Telegram = cfg.GetString("consumer_worker.rabbitmq.queue_read.telegram")
 	// appConfig.RabbitMQConfig.QueueForChannel.Console = cfg.GetString("consumer_worker.rabbitmq.queue_read.console")
 
+	// EmailConfig
+	appConfig.EmailConfig.From = cfg.GetString("consumer_worker.email.from")
+	appConfig.EmailConfig.Host = cfg.GetString("consumer_worker.email.host")
+	appConfig.EmailConfig.Port = cfg.GetInt("consumer_worker.email.port")
+	appConfig.EmailConfig.Password = cfg.GetString("consumer_worker.email.password")
+
 	// Retries
 	appConfig.RabbitMQRetryConfig.Attempts = cfg.GetInt("consumer_worker.retry_rabbitmq.attempts")
 	appConfig.RabbitMQRetryConfig.DelayMilliseconds = cfg.GetInt("consumer_worker.retry_rabbitmq.delay_milliseconds")
 	appConfig.RabbitMQRetryConfig.Backoff = cfg.GetFloat64("consumer_worker.retry_rabbitmq.backoff")
+
+	appConfig.EmailRetryConfig.Attempts = cfg.GetInt("consumer_worker.retry_email.attempts")
+	appConfig.EmailRetryConfig.DelayMilliseconds = cfg.GetInt("consumer_worker.retry_email.delay_milliseconds")
+	appConfig.RabbitMQRetryConfig.Backoff = cfg.GetFloat64("consumer_worker.retry_email.backoff")
 
 	return appConfig, nil
 }

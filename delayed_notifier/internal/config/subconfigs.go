@@ -66,6 +66,7 @@ type RedisConfig struct {
 	TTLSeconds int    `env:"TTL_SECONDS" envDefault:"0"`
 }
 
+// FetcherConfig is the config struct for fetching batches periodically
 type FetcherConfig struct {
 	FetchPeriodSeconds      int `env:"FETCH_PERIOD_SECONDS" envDefault:"60"`
 	FetchMaxDiapasonSeconds int `env:"FETCH_MAX_DIAPASON_SECONDS" envDefault:"100"`

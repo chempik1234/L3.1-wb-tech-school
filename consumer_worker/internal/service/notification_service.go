@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// ErrUnknownChannel occurs when channel given by producer in the message doesn't have corresponding sender here
 var ErrUnknownChannel = errors.New("unknown channel: no sender for it")
 
 // NotificationService is the main service that reads, sorts and sends 100 MLN notifications per 1 MS
@@ -62,18 +63,16 @@ out:
 		case <-ctx.Done():
 			break out
 		case object = <-objects:
-			break
-		}
+			// check if we'll be able to even send this notification
+			if _, ok := s.channelToSender[object.Channel]; !ok {
+				zlog.Logger.Error().Stringer("channel", &object.Channel).Msg("unable to find sender for given channel")
+				continue
+			}
 
-		// check if we'll be able to even send this notification
-		if _, ok := s.channelToSender[object.Channel]; !ok {
-			zlog.Logger.Error().Stringer("channel", &object.Channel).Msg("unable to find sender for given channel")
-			continue
+			s.heapMutex.Lock()
+			heap.Push(s.notificationHeap, object)
+			s.heapMutex.Unlock()
 		}
-
-		s.heapMutex.Lock()
-		heap.Push(s.notificationHeap, object)
-		s.heapMutex.Unlock()
 	}
 
 	return s.receiver.StopReceiving()
@@ -147,6 +146,8 @@ func (s *NotificationService) sendNotification(ctx context.Context, notification
 		zlog.Logger.Error().
 			Err(err).
 			Str("notification_id", notification.ID.String()).
+			Str("channel", notification.Channel.String()).
+			Str("send_to", notification.SendTo.String()).
 			Msg("failed to send notification")
 	}
 	return err

@@ -1,0 +1,1 @@
+ALTER TABLE delayed_notifier.notifications ADD COLUMN IF NOT EXISTS send_to varchar(255);

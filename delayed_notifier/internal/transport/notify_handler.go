@@ -12,14 +12,19 @@ import (
 	"net/http"
 )
 
+// NotifyHandler is the HTTP routes handler, used in AssembleRouter
+//
+// Validates request and passes it to service layer
 type NotifyHandler struct {
 	crudService *service.NotificationCRUDService
 }
 
+// NewNotifyHandler creates a new NotifyHandler with given service
 func NewNotifyHandler(crudService *service.NotificationCRUDService) *NotifyHandler {
 	return &NotifyHandler{crudService: crudService}
 }
 
+// CreateNotification POST /notify
 func (h *NotifyHandler) CreateNotification(c *gin.Context) {
 	var body dto.CreateNotificationBody
 
@@ -53,6 +58,7 @@ func (h *NotifyHandler) CreateNotification(c *gin.Context) {
 	c.JSON(http.StatusCreated, dto.FullNotificationBodyFromEntity(createModel))
 }
 
+// GetNotification GET /notify/id
 func (h *NotifyHandler) GetNotification(c *gin.Context) {
 	req, err := dto.BindGetNotificationRequest(c)
 	if err != nil {
@@ -92,6 +98,7 @@ func (h *NotifyHandler) GetNotification(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.FullNotificationBodyFromEntity(notification))
 }
 
+// DeleteNotification DELETE /notify/id
 func (h *NotifyHandler) DeleteNotification(c *gin.Context) {
 	req, err := dto.BindGetNotificationRequest(c)
 	if err != nil {

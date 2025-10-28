@@ -1,0 +1,1 @@
+ALTER TABLE delayed_notifier.notifications DROP COLUMN IF EXISTS send_to;

@@ -12,6 +12,7 @@ type NotificationSendBody struct {
 	ID            string                  `json:"id"`
 	PublicationAt string                  `json:"publication_at"`
 	Channel       string                  `json:"channel"`
+	SendTo        string                  `json:"send_to"`
 }
 
 // NotificationSendBodyFromEntity creates a new *NotificationSendBody from given object
@@ -26,6 +27,7 @@ func NotificationSendBodyFromEntity(object *models.Notification) *NotificationSe
 		ID:            object.ID.String(),
 		PublicationAt: object.PublicationAt.String(),
 		Channel:       object.Channel.String(),
+		SendTo:        object.SendTo.String(),
 	}
 }
 
